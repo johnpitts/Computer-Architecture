@@ -10,19 +10,19 @@ class CPU:
         self.register = [0] * 8
         self.pc = 0
 
-    def load(self, program=[0b00000001]):
+    def load(self, program):
         """Load a program into memory."""
 
         address = 0
         
         for instruction in program:
             self.ram[address] = instruction
-            print(f"instruction: {instruction} for address:{address}")
+            # print(f"instruction: {instruction} for address:{address}")
             address += 1
 
-    def ram_read(self):
+    def ram_read(self, program):
 
-        self.load()
+        return self.ram
 
 
     def ram_write(self, program):
@@ -76,13 +76,10 @@ class CPU:
 
         self.ram_write(program) # load the program from RAM
         running = True
-        self.load()
-        print(program)
+        # print(f"program: {program}")
 
         while running:
-            print(self.pc)
             command = self.ram[self.pc]
-            print(command)
 
             # Load following register w number (LGI)
             if command == 0b10000010:
@@ -94,15 +91,13 @@ class CPU:
             # Print the following register (PRN)
             elif command == 0b01000111:
                 reg_num = self.ram[self.pc+1]
-                print(f"Here: {self.register[reg_num]}")
-                pc += 2
+                print(self.register[reg_num])
+                self.pc += 2
 
             # Halt the program (HLT)
             elif command == 0b00000001:
-                print("halted")
                 running = False
 
-            self.pc += 1
         # self.trace()
 
 
