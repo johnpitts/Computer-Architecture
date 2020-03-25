@@ -21,23 +21,27 @@ class CPU:
         try:
             with open(filename) as f:
                 for line in f:
-                    print(line)
+                    # print(line)
 
                     # Ignore comments, whether on their one line, or at end of a line of command code
                     comment_split = line.split("#")   # this is obviously a list of codesplits
-                    print(comment_split)
+                    # print(comment_split)
 
                     # Strip out whitespace
-                    num = comment_split[0].strip()
+                    instruction_num = comment_split[0].strip()
 
-                    if num == '':
+                    if instruction_num == '':
                         continue
 
-                    print(num)
-                    instruction_word = int(num)
+                    # print(f"word! {instruction_num}")
 
-                    self.ram[address] = instruction_word
-                    print(f"instruction: {instruction_word} for address:{address}")
+                    # instruction_num = str(instruction_word)
+
+                    # Now break down the line into seperate words like... 0] LDI 1] R0 2] 8
+
+
+                    self.ram[address] = int(instruction_num, 2)
+                    # print(f"instruction: {instruction_num} for address:{address}")
                     address += 1
                     
 
@@ -89,12 +93,11 @@ class CPU:
 
     def run(self):
 
-
         running = True
-        # print(f"program: {program}")
 
         while running:
             command = self.ram[self.pc]
+            print("inside run")
 
             # Load following register w number (LGI)
             if command == 0b10000010:
@@ -111,6 +114,9 @@ class CPU:
 
             # Halt the program
             elif command == self.HLT:
+                running = False
+            else:
+                print("unrecognized command")
                 running = False
 
         # self.trace()
