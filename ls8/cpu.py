@@ -4,9 +4,10 @@ import sys
 
 class CPU:
     """Main CPU class."""
+    HLT = 0b00000001
 
     def __init__(self):
-        self.ram = {}
+        self.ram = [0] * 256             # make this a List instead of a dictionary [0] * 256
         self.register = [0] * 8
         self.pc = 0
 
@@ -20,14 +21,14 @@ class CPU:
             # print(f"instruction: {instruction} for address:{address}")
             address += 1
 
-    def ram_read(self, program):
+    def ram_read(self, memory_address_register):
 
-        return self.ram
+        return self.ram[memory_address_register]
 
 
-    def ram_write(self, program):
+    def ram_write(self, memory_data_register, program):      # pc insert a command (value), set value in ram as new value
 
-        self.load(program)
+        self.ram[address] = memory_data_register
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -64,17 +65,6 @@ class CPU:
 
         # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
-
-        self.ram_write(program) # load the program from RAM
         running = True
         # print(f"program: {program}")
 
@@ -83,19 +73,19 @@ class CPU:
 
             # Load following register w number (LGI)
             if command == 0b10000010:
-                reg_num = self.ram[self.pc + 1]
-                num = self.ram[self.pc + 2]
-                self.register[reg_num] = num
+                operand_a = self.ram_read(self.pc + 1)
+                operand_b = self.ram_read(self.pc + 2)
+                self.register[operand_a] = operand_b
                 self.pc += 3
 
             # Print the following register (PRN)
             elif command == 0b01000111:
-                reg_num = self.ram[self.pc+1]
-                print(self.register[reg_num])
+                operand_a = self.ram_read(self.pc+1)
+                print(self.register[operand_a])
                 self.pc += 2
 
-            # Halt the program (HLT)
-            elif command == 0b00000001:
+            # Halt the program
+            elif command == self.HLT:
                 running = False
 
         # self.trace()
