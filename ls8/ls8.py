@@ -5,6 +5,7 @@
 import sys
 from cpu import *
 
+
 cpu = CPU()
 
 program = [
@@ -17,5 +18,7 @@ program = [
     0b00000001, # HLT
 ]
 
-cpu.load(program)
+
+cpu.load()
+
 cpu.run()

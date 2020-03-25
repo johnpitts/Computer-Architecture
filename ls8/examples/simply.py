@@ -28,6 +28,36 @@ register = [0] * 8        # each register can hold a "word" which is = to bits c
 pc = 0                   # program counter: extremely fast memory
 running = True
 
+try:
+    with open(filename) as f:
+        for line in f:
+            print(line)
+
+            # Ignore comments
+            comment_split = line.split("#")
+
+            # Strip out whitespace
+            num = comment_split[0].strip()
+
+            if num == '':
+                continue
+
+            print(num)
+            val = int(num)
+
+except FileNotFoundError:
+    print("file not found")
+    sys.exit(2)
+
+
+
+
+
+
+
+
+
+
 while running:
     command = memory[pc]
 

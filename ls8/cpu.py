@@ -2,6 +2,7 @@
 
 import sys
 
+
 class CPU:
     """Main CPU class."""
     HLT = 0b00000001
@@ -11,15 +12,40 @@ class CPU:
         self.register = [0] * 8
         self.pc = 0
 
-    def load(self, program):
+    def load(self):
         """Load a program into memory."""
 
         address = 0
+        filename = sys.argv[1]
         
-        for instruction in program:
-            self.ram[address] = instruction
-            # print(f"instruction: {instruction} for address:{address}")
-            address += 1
+        try:
+            with open(filename) as f:
+                for line in f:
+                    print(line)
+
+                    # Ignore comments, whether on their one line, or at end of a line of command code
+                    comment_split = line.split("#")   # this is obviously a list of codesplits
+                    print(comment_split)
+
+                    # Strip out whitespace
+                    num = comment_split[0].strip()
+
+                    if num == '':
+                        continue
+
+                    print(num)
+                    instruction_word = int(num)
+
+                    self.ram[address] = instruction_word
+                    print(f"instruction: {instruction_word} for address:{address}")
+                    address += 1
+                    
+
+        except FileNotFoundError:
+            print("file not found")
+            sys.exit(2)
+
+
 
     def ram_read(self, memory_address_register):
 
@@ -63,7 +89,6 @@ class CPU:
 
     def run(self):
 
-        # For now, we've just hardcoded a program:
 
         running = True
         # print(f"program: {program}")
@@ -92,7 +117,7 @@ class CPU:
 
 
 
-# each register can hold a "word" which is = to bits computer is rated
+# each register can hold a "word" which is = to bits computer is rated, so 8-bit words.
 
 
 
