@@ -6,6 +6,7 @@ import sys
 class CPU:
     """Main CPU class."""
     HLT = 0b00000001
+    MULT = 0b10100010
 
     def __init__(self):
         self.ram = [0] * 256             # make this a List instead of a dictionary [0] * 256
@@ -34,16 +35,9 @@ class CPU:
                         continue
 
                     # print(f"word! {instruction_num}")
-
-                    # instruction_num = str(instruction_word)
-
-                    # Now break down the line into seperate words like... 0] LDI 1] R0 2] 8
-
-
                     self.ram[address] = int(instruction_num, 2)
                     # print(f"instruction: {instruction_num} for address:{address}")
                     address += 1
-                    
 
         except FileNotFoundError:
             print("file not found")
@@ -64,8 +58,9 @@ class CPU:
         """ALU operations."""
 
         if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+            self.register[reg_a] += self.register[reg_b]
+        elif op == "MULT":
+            self.register[reg_a] *= self.register[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -85,9 +80,16 @@ class CPU:
         ), end='')
 
         for i in range(8):
-            print(" %02X" % self.reg[i], end='')
+            print(" %02X" % self.register[i], end='')
 
         print()
+
+    def multiply(self, factor1, factor2):
+        product = 0
+        for multiplier in range(factor2):
+            product += factor1
+        return product
+
     
     
 
@@ -97,13 +99,20 @@ class CPU:
 
         while running:
             command = self.ram[self.pc]
-            print("inside run")
+            # print(f"command: {bin(command)}")
 
-            # Load following register w number (LGI)
+            # Load following register w number (LDI)
             if command == 0b10000010:
                 operand_a = self.ram_read(self.pc + 1)
                 operand_b = self.ram_read(self.pc + 2)
                 self.register[operand_a] = operand_b
+                self.pc += 3
+            
+            # MULTIPLY NEXT TWO NUMBERS
+            elif command == self.MULT:
+                operand_a = self.ram_read(self.pc + 1)
+                operand_b = self.ram_read(self.pc + 2)
+                self.alu("MULT", operand_a, operand_b)
                 self.pc += 3
 
             # Print the following register (PRN)
@@ -115,11 +124,12 @@ class CPU:
             # Halt the program
             elif command == self.HLT:
                 running = False
+                self.pc = 0
             else:
-                print("unrecognized command")
+                print(f"Whoops! unrecognized command: {command}")
                 running = False
 
-        # self.trace()
+        self.trace()
 
 
 
