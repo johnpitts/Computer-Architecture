@@ -15,7 +15,7 @@ PRN R3       ; Prints 1
 
 Test1:
 
-LDI R2,Test2
+LDI R2,Test2 = 32
 CMP R0,R1
 JNE R2       ; Jumps because R0 != R1
 LDI R3,2
@@ -24,15 +24,15 @@ PRN R3       ; Skipped--does not print
 Test2:
 
 LDI R1,10
-LDI R2,Test3
+LDI R2,Test3 = 48
 CMP R0,R1
 JEQ R2      ; Jumps becuase R0 == R1
 LDI R3,3
 PRN R3      ; Skipped--does not print
 
-Test3:
+Test3: is register 32 which is 
 
-LDI R2,Test4
+LDI R2,Test4 = 61
 CMP R0,R1
 JNE R2      ; Does not jump because R0 == R1
 LDI R3,4

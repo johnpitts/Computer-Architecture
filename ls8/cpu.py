@@ -3,15 +3,47 @@
 import sys
 
 
+
+class Assembly_Code:
+
+    def __init__(self):
+        # Set up the branch table
+        self.branchtable = {}
+        self.branchtable[OP1] = self.handle_op1
+        self.branchtable[OP2] = self.handle_op2
+
+    def handle_op1(self, a):
+        print("op 1: " + a)
+
+
+    def handle_op2(self, a):
+        print("op 2: " + a)
+
+    def run(self):
+        # Example calls into the branch table
+        ir = OP1
+        self.branchtable[ir]("foo")
+
+        ir = OP2
+        self.branchtable[ir]("bar")
+
+
 class CPU:
     """Main CPU class."""
     HLT = 0b00000001
     MULT = 0b10100010
+    CMP = 0b10100111
+    JMP = 0b01010100
+    JEQ = 0b01010101
+    JNE = 0b01010110
 
     def __init__(self):
         self.ram = [0] * 256             # make this a List instead of a dictionary [0] * 256
         self.register = [0] * 8
         self.pc = 0
+        self.e = 0
+        self.g = 0
+        self.l = 0
 
     def load(self):
         """Load a program into memory."""
@@ -22,11 +54,11 @@ class CPU:
         try:
             with open(filename) as f:
                 for line in f:
-                    # print(line)
+                    print(line)
 
                     # Ignore comments, whether on their one line, or at end of a line of command code
                     comment_split = line.split("#")   # this is obviously a list of codesplits
-                    # print(comment_split)
+                    print(comment_split)
 
                     # Strip out whitespace
                     instruction_num = comment_split[0].strip()
@@ -34,9 +66,9 @@ class CPU:
                     if instruction_num == '':
                         continue
 
-                    # print(f"word! {instruction_num}")
+                    print(f"word! {instruction_num}")
                     self.ram[address] = int(instruction_num, 2)
-                    # print(f"instruction: {instruction_num} for address:{address}")
+                    print(f"instruction: {instruction_num} for address:{address}")
                     address += 1
 
         except FileNotFoundError:
@@ -61,6 +93,11 @@ class CPU:
             self.register[reg_a] += self.register[reg_b]
         elif op == "MULT":
             self.register[reg_a] *= self.register[reg_b]
+        elif op == "CMP":
+            self.E = 1 if self.register[reg_a] == self.register[reg_b] else 0
+            print(f"equal? {self.E}")
+            self.G = 1 if self.register[reg_a] > self.register[reg_b] else 0
+            self.L = 1 if self.register[reg_b] < self.register[reg_b] else 0
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -91,8 +128,6 @@ class CPU:
         return product
 
     
-    
-
     def run(self):
 
         running = True
@@ -101,15 +136,22 @@ class CPU:
             command = self.ram[self.pc]
             # print(f"command: {bin(command)}")
 
+            # ldi = LDI().  This is to clean up this run file and put it into a branched structure to eliminate O(n) elif statements
+            
+
             # Load following register w number (LDI)
             if command == 0b10000010:
+                print("LDI")
                 operand_a = self.ram_read(self.pc + 1)
                 operand_b = self.ram_read(self.pc + 2)
                 self.register[operand_a] = operand_b
+                print(f"loaded: {operand_b}")
+                print(f"register 2: {self.register[2]}")
                 self.pc += 3
             
             # MULTIPLY NEXT TWO NUMBERS
             elif command == self.MULT:
+                print("MULT")
                 operand_a = self.ram_read(self.pc + 1)
                 operand_b = self.ram_read(self.pc + 2)
                 self.alu("MULT", operand_a, operand_b)
@@ -117,14 +159,52 @@ class CPU:
 
             # Print the following register (PRN)
             elif command == 0b01000111:
+                print("PRN")
                 operand_a = self.ram_read(self.pc+1)
                 print(self.register[operand_a])
                 self.pc += 2
 
-            # Halt the program
+            # CoMPare next two registers (greater than, less than, equals)
+            elif command == self.CMP:
+                print("CMP")
+                operand_a = self.ram_read(self.pc + 1)
+                operand_b = self.ram_read(self.pc + 2)
+                self.alu("CMP", operand_a, operand_b)
+                self.pc += 3
+
+            # JuMP to a specified register
+            elif command == self.JMP:
+                print("JMP\n")
+                operand_a = self.ram_read(self.pc + 1)
+                self.pc = self.register[operand_a]
+            
+            # JumpEQuals: jump the pc to the address of the following register if EQUALS is 1 (True)
+            elif command == self.JEQ:
+                print("JEQ")
+                operand_a = self.ram_read(self.pc + 1)
+                print(self.register[0], self.register[1])
+                
+                if self.E == 1:
+                    self.pc = self.register[operand_a]
+                else:
+                    self.pc += 2
+
+            # JumpNotEquals: jump the pc to the address of the following register if EQUALS is 0 (Fale)
+            elif command == self.JNE:
+                print("JNE")
+                operand_a = self.ram_read(self.pc + 1)
+                if self.E == 0:
+                    self.pc = self.register[operand_a]
+                    print(f"jumping to {self.register[operand_a]}")
+                else:
+                    self.pc += 2
+                    print("NO jump")
+
+            # HaLT the program
             elif command == self.HLT:
+                print("WINNER = NONE\nGAME OVER\n SHALL WE PLAY A DIFFERENT GAME?\nHOW ABOUT WE PLAY A NICE GAME OF GLOBAL THERMONUCLEAR WAR?\n")
                 running = False
-                self.pc = 0
+                # self.pc = 0
             else:
                 print(f"Whoops! unrecognized command: {command}")
                 running = False
